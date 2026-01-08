@@ -148,15 +148,42 @@ Edit the CSS in `templates/index.html` to customize colors, fonts, and layout.
 
 ## 🔒 Security Notes
 
+**Important: This application is designed for development and personal use. Do not deploy to production without proper security measures.**
+
 - The application stores files temporarily during processing
 - Uploaded files are stored with unique session IDs
 - Files are stored locally on the server (not recommended for production without additional security)
-- For production use, consider:
-  - Adding authentication
-  - Using cloud storage with encryption
-  - Implementing file cleanup routines
-  - Adding rate limiting
-  - Using HTTPS
+- Debug mode is disabled in production when FLASK_ENV=production is set
+
+### For Production Deployment:
+
+**Required:**
+1. Set environment variable: `FLASK_ENV=production`
+2. Set a secure secret key: `SECRET_KEY=<your-secure-random-key>`
+3. Use a production WSGI server (e.g., Gunicorn, uWSGI) instead of Flask's built-in server
+4. Enable HTTPS/SSL certificates
+
+**Recommended:**
+- Add user authentication and authorization
+- Use cloud storage with encryption for file uploads
+- Implement automatic file cleanup routines
+- Add rate limiting to prevent abuse
+- Set up logging and monitoring
+- Use a reverse proxy (nginx, Apache)
+- Implement CSRF protection
+- Add input validation and sanitization
+- Set up a firewall and security groups
+
+**Example Production Setup:**
+```bash
+# Set environment variables
+export FLASK_ENV=production
+export SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+
+# Run with Gunicorn
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
+```
 
 ## 🤝 Contributing
 
