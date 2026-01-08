@@ -6,249 +6,342 @@ This application helps match resumes to job descriptions by:
 3. Searching the internet for relevant information
 4. Allowing users to specify where to add missing points
 5. Generating an updated resume matching the job description
+
+Refactored to follow Object-Oriented Programming principles with:
+- Service layer for business logic
+- Separation of concerns
+- Dependency injection
+- Controller pattern for routes
 """
 
 from flask import Flask, render_template, request, jsonify, send_file, session
 import os
-from werkzeug.utils import secure_filename
-import json
-import uuid
-from datetime import datetime
+from typing import Tuple, Optional
 
-app = Flask(__name__)
-
-# Security: Ensure secret key is properly configured
-if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get('SECRET_KEY'):
-    raise ValueError("SECRET_KEY must be set in production environment")
-
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['PROCESSED_FOLDER'] = 'processed'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx', 'txt'}
-
-# Import our modules
-from modules.resume_parser import ResumeParser
-from modules.job_analyzer import JobAnalyzer
-from modules.comparison_engine import ComparisonEngine
-from modules.web_search import WebSearchEngine
-from modules.resume_generator import ResumeGenerator
-
-# Create necessary directories
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
-
-def allowed_file(filename):
-    """Check if the uploaded file has an allowed extension"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+from services.resume_service import ResumeService
+from services.session_service import SessionService
 
 
-@app.route('/')
-def index():
-    """Main page with upload form"""
-    return render_template('index.html')
+class ApplicationConfig:
+    """Configuration class for application settings"""
+    
+    def __init__(self):
+        self.upload_folder = 'uploads'
+        self.processed_folder = 'processed'
+        self.max_content_length = 16 * 1024 * 1024  # 16MB
+        self.allowed_extensions = {'pdf', 'docx', 'txt'}
+        self.secret_key = self._get_secret_key()
+    
+    @staticmethod
+    def _get_secret_key() -> str:
+        """Get secret key from environment with validation"""
+        if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get('SECRET_KEY'):
+            raise ValueError("SECRET_KEY must be set in production environment")
+        return os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    """Handle file upload and job description submission"""
-    try:
-        # Check if file and job description are present
-        if 'resume' not in request.files:
-            return jsonify({'error': 'No resume file uploaded'}), 400
+class ResumeController:
+    """Controller class for handling resume-related routes"""
+    
+    def __init__(self, resume_service: ResumeService, session_service: SessionService):
+        """
+        Initialize the controller with required services
         
-        file = request.files['resume']
-        job_description = request.form.get('job_description', '')
+        Args:
+            resume_service: Service for resume operations
+            session_service: Service for session management
+        """
+        self.resume_service = resume_service
+        self.session_service = session_service
+    
+    def upload(self) -> Tuple[dict, int]:
+        """
+        Handle file upload and job description submission
         
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
-        
-        if not job_description.strip():
-            return jsonify({'error': 'Job description is required'}), 400
-        
-        if file and allowed_file(file.filename):
-            # Generate unique session ID
-            session_id = str(uuid.uuid4())
-            session['session_id'] = session_id
+        Returns:
+            Tuple of (response dict, status code)
+        """
+        try:
+            # Validate request
+            if 'resume' not in request.files:
+                return {'error': 'No resume file uploaded'}, 400
             
-            # Save the uploaded file
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{session_id}_{filename}")
-            file.save(filepath)
+            file = request.files['resume']
+            job_description = request.form.get('job_description', '')
             
-            # Parse the resume
-            parser = ResumeParser()
-            resume_data = parser.parse(filepath)
+            # Process the upload
+            result = self.resume_service.process_resume_upload(file, job_description)
             
-            # Analyze job description
-            job_analyzer = JobAnalyzer()
-            job_requirements = job_analyzer.analyze(job_description)
-            
-            # Compare resume with job requirements
-            comparison_engine = ComparisonEngine()
-            missing_points = comparison_engine.find_missing_points(
-                resume_data, 
-                job_requirements
+            # Initialize session
+            self.session_service.initialize_session(
+                result['session_id'],
+                result['resume_data'],
+                result['job_requirements'],
+                result['missing_points'],
+                result['filepath'],
+                result['filename']
             )
             
-            # Store data in session
-            session['resume_data'] = resume_data
-            session['job_requirements'] = job_requirements
-            session['missing_points'] = missing_points
-            session['original_filepath'] = filepath
-            session['original_filename'] = filename
-            
-            return jsonify({
+            return {
                 'success': True,
-                'session_id': session_id,
-                'missing_points': missing_points,
-                'resume_sections': resume_data.get('sections', [])
-            })
-        else:
-            return jsonify({'error': 'Invalid file type. Please upload PDF, DOCX, or TXT file'}), 400
+                'session_id': result['session_id'],
+                'missing_points': result['missing_points'],
+                'resume_sections': result['resume_data'].get('sections', [])
+            }, 200
             
-    except Exception as e:
-        return jsonify({'error': f'Error processing upload: {str(e)}'}), 500
+        except ValueError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'error': f'Error processing upload: {str(e)}'}, 500
+    
+    def search_point(self) -> Tuple[dict, int]:
+        """
+        Search for suggestions about a missing point
+        
+        Returns:
+            Tuple of (response dict, status code)
+        """
+        try:
+            data = request.json
+            point = data.get('point', '')
+            
+            # Search for suggestions
+            results = self.resume_service.search_suggestions(point)
+            
+            return {
+                'success': True,
+                'results': results
+            }, 200
+            
+        except ValueError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'error': f'Error searching: {str(e)}'}, 500
+    
+    def add_point(self) -> Tuple[dict, int]:
+        """
+        Add a missing point to a specific section of the resume
+        
+        Returns:
+            Tuple of (response dict, status code)
+        """
+        try:
+            data = request.json
+            point = data.get('point', '')
+            section = data.get('section', '')
+            project = data.get('project', '')
+            additional_info = data.get('additional_info', '')
+            
+            if not point or not section:
+                return {'error': 'Point and section are required'}, 400
+            
+            # Add point to session
+            self.session_service.add_point(point, section, project, additional_info)
+            
+            return {
+                'success': True,
+                'message': 'Point added successfully'
+            }, 200
+            
+        except Exception as e:
+            return {'error': f'Error adding point: {str(e)}'}, 500
+    
+    def generate_resume(self) -> Tuple[dict, int]:
+        """
+        Generate the updated resume with all added points
+        
+        Returns:
+            Tuple of (response dict, status code)
+        """
+        try:
+            # Get data from session
+            resume_data = self.session_service.get_resume_data()
+            added_points = self.session_service.get_added_points()
+            original_filepath = self.session_service.get_original_filepath()
+            session_id = self.session_service.get_session_id()
+            
+            if not resume_data or not added_points:
+                return {'error': 'No data available to generate resume'}, 400
+            
+            # Generate updated resume
+            output_filepath = self.resume_service.generate_updated_resume(
+                resume_data,
+                added_points,
+                original_filepath,
+                session_id
+            )
+            
+            # Store path in session
+            self.session_service.set_updated_resume_path(output_filepath)
+            
+            return {
+                'success': True,
+                'message': 'Resume generated successfully',
+                'download_url': '/download'
+            }, 200
+            
+        except ValueError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'error': f'Error generating resume: {str(e)}'}, 500
+    
+    def download(self):
+        """
+        Download the updated resume
+        
+        Returns:
+            File response or error dict with status code
+        """
+        try:
+            updated_resume_path = self.session_service.get_updated_resume_path()
+            
+            if not self.resume_service.validate_file_exists(updated_resume_path):
+                return {'error': 'No updated resume available'}, 404
+            
+            return send_file(
+                updated_resume_path,
+                as_attachment=True,
+                download_name='updated_resume.pdf',
+                mimetype='application/pdf'
+            )
+            
+        except Exception as e:
+            return {'error': f'Error downloading resume: {str(e)}'}, 500
+    
+    def get_status(self) -> Tuple[dict, int]:
+        """
+        Get current session status
+        
+        Returns:
+            Tuple of (status dict, status code)
+        """
+        try:
+            return self.session_service.get_status(), 200
+        except Exception as e:
+            return {'error': str(e)}, 500
 
 
-@app.route('/search_point', methods=['POST'])
-def search_point():
-    """Search the internet for information about a missing point"""
-    try:
-        data = request.json
-        point = data.get('point', '')
+class JobResumeChangerApp:
+    """Main application class following OOP principles"""
+    
+    def __init__(self, config: ApplicationConfig):
+        """
+        Initialize the application with configuration
         
-        if not point:
-            return jsonify({'error': 'Point is required'}), 400
-        
-        # Search for information
-        search_engine = WebSearchEngine()
-        search_results = search_engine.search(point)
-        
-        return jsonify({
-            'success': True,
-            'results': search_results
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Error searching: {str(e)}'}), 500
-
-
-@app.route('/add_point', methods=['POST'])
-def add_point():
-    """Add a missing point to a specific section of the resume"""
-    try:
-        data = request.json
-        point = data.get('point', '')
-        section = data.get('section', '')
-        project = data.get('project', '')
-        additional_info = data.get('additional_info', '')
-        
-        if not point or not section:
-            return jsonify({'error': 'Point and section are required'}), 400
-        
-        # Get session data
-        resume_data = session.get('resume_data', {})
-        
-        # Add the point to the specified section
-        if 'added_points' not in session:
-            session['added_points'] = []
-        
-        added_point = {
-            'point': point,
-            'section': section,
-            'project': project,
-            'additional_info': additional_info,
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        session['added_points'].append(added_point)
-        session.modified = True
-        
-        return jsonify({
-            'success': True,
-            'message': 'Point added successfully'
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Error adding point: {str(e)}'}), 500
-
-
-@app.route('/generate_resume', methods=['POST'])
-def generate_resume():
-    """Generate the updated resume with all added points"""
-    try:
-        # Get session data
-        resume_data = session.get('resume_data', {})
-        added_points = session.get('added_points', [])
-        original_filepath = session.get('original_filepath', '')
-        session_id = session.get('session_id', '')
-        
-        if not resume_data or not added_points:
-            return jsonify({'error': 'No data available to generate resume'}), 400
-        
-        # Generate updated resume
-        generator = ResumeGenerator()
-        output_filepath = os.path.join(
-            app.config['PROCESSED_FOLDER'], 
-            f"{session_id}_updated_resume.pdf"
+        Args:
+            config: Application configuration object
+        """
+        self.config = config
+        self.app = Flask(__name__)
+        self._configure_app()
+        self._initialize_services()
+        self._register_routes()
+    
+    def _configure_app(self) -> None:
+        """Configure Flask application"""
+        self.app.secret_key = self.config.secret_key
+        self.app.config['UPLOAD_FOLDER'] = self.config.upload_folder
+        self.app.config['PROCESSED_FOLDER'] = self.config.processed_folder
+        self.app.config['MAX_CONTENT_LENGTH'] = self.config.max_content_length
+        self.app.config['ALLOWED_EXTENSIONS'] = self.config.allowed_extensions
+    
+    def _initialize_services(self) -> None:
+        """Initialize service layer objects"""
+        self.resume_service = ResumeService(
+            self.config.upload_folder,
+            self.config.processed_folder,
+            self.config.allowed_extensions
         )
+    
+    def _get_session_service(self) -> SessionService:
+        """
+        Get session service for current request
         
-        generator.generate(
-            resume_data,
-            added_points,
-            original_filepath,
-            output_filepath
-        )
+        Returns:
+            SessionService instance for current session
+        """
+        return SessionService(session)
+    
+    def _register_routes(self) -> None:
+        """Register all application routes"""
         
-        session['updated_resume_path'] = output_filepath
+        @self.app.route('/')
+        def index():
+            """Main page with upload form"""
+            return render_template('index.html')
         
-        return jsonify({
-            'success': True,
-            'message': 'Resume generated successfully',
-            'download_url': '/download'
-        })
+        @self.app.route('/upload', methods=['POST'])
+        def upload():
+            """Handle file upload and job description submission"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.upload()
+            return jsonify(response), status
         
-    except Exception as e:
-        return jsonify({'error': f'Error generating resume: {str(e)}'}), 500
+        @self.app.route('/search_point', methods=['POST'])
+        def search_point():
+            """Search the internet for information about a missing point"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.search_point()
+            return jsonify(response), status
+        
+        @self.app.route('/add_point', methods=['POST'])
+        def add_point():
+            """Add a missing point to a specific section of the resume"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.add_point()
+            return jsonify(response), status
+        
+        @self.app.route('/generate_resume', methods=['POST'])
+        def generate_resume():
+            """Generate the updated resume with all added points"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.generate_resume()
+            return jsonify(response), status
+        
+        @self.app.route('/download')
+        def download():
+            """Download the updated resume"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            return controller.download()
+        
+        @self.app.route('/status')
+        def status():
+            """Get current session status"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status_code = controller.get_status()
+            return jsonify(response), status_code
+    
+    def run(self, host: str = '0.0.0.0', port: int = 5000) -> None:
+        """
+        Run the Flask application
+        
+        Args:
+            host: Host to bind to
+            port: Port to bind to
+        """
+        # Only enable debug mode in development
+        debug_mode = os.environ.get('FLASK_ENV') != 'production'
+        self.app.run(debug=debug_mode, host=host, port=port)
 
 
-@app.route('/download')
-def download():
-    """Download the updated resume"""
-    try:
-        updated_resume_path = session.get('updated_resume_path', '')
-        
-        if not updated_resume_path or not os.path.exists(updated_resume_path):
-            return jsonify({'error': 'No updated resume available'}), 404
-        
-        return send_file(
-            updated_resume_path,
-            as_attachment=True,
-            download_name='updated_resume.pdf',
-            mimetype='application/pdf'
-        )
-        
-    except Exception as e:
-        return jsonify({'error': f'Error downloading resume: {str(e)}'}), 500
+def create_app() -> Flask:
+    """
+    Application factory function
+    
+    Returns:
+        Configured Flask application
+    """
+    config = ApplicationConfig()
+    app_instance = JobResumeChangerApp(config)
+    return app_instance.app
 
 
-@app.route('/status')
-def status():
-    """Get current session status"""
-    try:
-        return jsonify({
-            'has_session': 'session_id' in session,
-            'session_id': session.get('session_id', ''),
-            'missing_points_count': len(session.get('missing_points', [])),
-            'added_points_count': len(session.get('added_points', []))
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# Create global app instance for WSGI servers
+app = create_app()
 
 
 if __name__ == '__main__':
-    # Only enable debug mode in development
-    debug_mode = os.environ.get('FLASK_ENV') != 'production'
-    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
+    # Create and run the application
+    config = ApplicationConfig()
+    application = JobResumeChangerApp(config)
+    application.run()

@@ -86,11 +86,39 @@ JobResumeChanger/
 │   ├── comparison_engine.py    # Resume vs. job comparison
 │   ├── web_search.py           # Search and suggestion engine
 │   └── resume_generator.py     # Updated resume generation
+├── services/                   # Service layer (OOP architecture)
+│   ├── __init__.py
+│   ├── resume_service.py       # Resume business logic service
+│   └── session_service.py      # Session management service
 ├── templates/                  # HTML templates
 │   └── index.html             # Main web interface
 ├── uploads/                    # Uploaded resumes (created automatically)
 └── processed/                  # Generated resumes (created automatically)
 ```
+
+## 🏗️ Architecture
+
+The application follows **Object-Oriented Programming (OOP) principles** with a clean, layered architecture:
+
+### Service Layer
+- **ResumeService**: Encapsulates resume operations (upload, parse, analyze, generate)
+- **SessionService**: Manages user session state and data persistence
+
+### Controller Layer
+- **ResumeController**: Handles HTTP requests and coordinates services
+
+### Application Layer
+- **JobResumeChangerApp**: Main application orchestrator
+- **ApplicationConfig**: Centralized configuration management
+
+**OOP Patterns Used**:
+- Service Layer Pattern
+- Dependency Injection
+- Controller Pattern
+- Factory Pattern (create_app)
+- Composition over Inheritance
+
+See [OOP_ARCHITECTURE.md](OOP_ARCHITECTURE.md) for detailed architecture documentation.
 
 ## 🔧 Technical Details
 
