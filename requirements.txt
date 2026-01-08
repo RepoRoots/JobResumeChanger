@@ -1,0 +1,11 @@
+# Flask web framework
+Flask>=2.3.0
+
+# PDF processing
+PyMuPDF>=1.23.0
+
+# DOCX processing
+python-docx>=1.0.0
+
+# Werkzeug for secure file handling
+Werkzeug>=2.3.0
