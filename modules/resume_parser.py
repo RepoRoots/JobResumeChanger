@@ -178,8 +178,19 @@ class ResumeParser:
         
         text_lower = text.lower()
         for skill in skill_keywords:
-            if re.search(r'\b' + skill.lower().replace('\\', '') + r'\b', text_lower):
-                skills.append(skill)
+            # Handle special characters in skill names
+            if skill == 'C\\+\\+':
+                # Special case for C++ - use lookahead/lookbehind for word boundaries
+                if re.search(r'(?<![a-z])c\+\+(?![a-z])', text_lower):
+                    skills.append('C++')
+            elif skill == 'C#':
+                # Special case for C#
+                if re.search(r'(?<![a-z])c#(?![a-z])', text_lower):
+                    skills.append('C#')
+            else:
+                # Regular matching for other skills
+                if re.search(r'\b' + re.escape(skill.lower()) + r'\b', text_lower):
+                    skills.append(skill)
         
         return skills
     

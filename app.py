@@ -16,6 +16,11 @@ import uuid
 from datetime import datetime
 
 app = Flask(__name__)
+
+# Security: Ensure secret key is properly configured
+if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get('SECRET_KEY'):
+    raise ValueError("SECRET_KEY must be set in production environment")
+
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['PROCESSED_FOLDER'] = 'processed'

@@ -97,9 +97,19 @@ class JobAnalyzer:
         
         text_lower = text.lower()
         for skill in tech_keywords:
-            skill_pattern = skill.replace('\\', '')
-            if re.search(r'\b' + skill_pattern.lower() + r'\b', text_lower):
-                technical_skills.append(skill_pattern)
+            # Handle special characters in skill names
+            if skill == 'C\\+\\+':
+                # Special case for C++ - use lookahead/lookbehind for word boundaries
+                if re.search(r'(?<![a-z])c\+\+(?![a-z])', text_lower):
+                    technical_skills.append('C++')
+            elif skill == 'C#':
+                # Special case for C#
+                if re.search(r'(?<![a-z])c#(?![a-z])', text_lower):
+                    technical_skills.append('C#')
+            else:
+                # Regular matching for other skills
+                if re.search(r'\b' + re.escape(skill.lower()) + r'\b', text_lower):
+                    technical_skills.append(skill)
         
         return technical_skills
     
