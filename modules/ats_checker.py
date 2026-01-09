@@ -136,7 +136,7 @@ class ATSChecker:
         Check resume structure and organization
         
         Args:
-            sections: List of identified sections
+            sections: List of identified sections (can be strings or dicts)
             text: Resume text content
             
         Returns:
@@ -145,8 +145,17 @@ class ATSChecker:
         issues = []
         score = 100.0
         
-        # Normalize section names for comparison
-        normalized_sections = {s.lower().strip() for s in sections if s}
+        # Normalize section names for comparison - handle both strings and dicts
+        normalized_sections = set()
+        for s in sections:
+            if isinstance(s, dict):
+                # Extract name from dict
+                section_name = s.get('name', '')
+                if section_name:
+                    normalized_sections.add(section_name.lower().strip())
+            elif isinstance(s, str) and s:
+                # Use string directly
+                normalized_sections.add(s.lower().strip())
         
         # Check for essential sections
         has_experience = any(
@@ -444,7 +453,15 @@ class ATSChecker:
         ])
         
         # Section suggestions
-        section_lower = {s.lower() for s in sections if s}
+        section_lower = set()
+        for s in sections:
+            if isinstance(s, dict):
+                section_name = s.get('name', '')
+                if section_name:
+                    section_lower.add(section_name.lower())
+            elif isinstance(s, str) and s:
+                section_lower.add(s.lower())
+        
         if not any('experience' in s for s in section_lower):
             suggestions['sections'].append('Add a "Work Experience" or "Professional Experience" section')
         if not any('education' in s for s in section_lower):
