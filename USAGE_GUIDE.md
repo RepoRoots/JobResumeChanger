@@ -74,12 +74,42 @@ Once you've added all the points you want:
 2. The application will create an updated version of your resume with all new points integrated
 3. New points will be highlighted or marked as [NEW]
 
-### 6. Download and Review
+### 6. Check ATS Compliance (NEW!)
+
+Before downloading, check how well your resume performs with Applicant Tracking Systems:
+
+1. Click "🔍 Check ATS Score" on the download page
+2. Review your overall ATS compliance score (0-100%) and letter grade
+3. See detailed breakdown across four components:
+   - **Format Compatibility**: Checks for ATS-friendly formatting
+   - **Structure Quality**: Validates proper sections and organization
+   - **Keyword Optimization**: Analyzes keyword usage and density
+   - **Content Quality**: Evaluates writing quality and achievements
+
+4. Review prioritized recommendations:
+   - 🔴 **High Priority**: Critical issues affecting ATS parsing
+   - 🟡 **Medium Priority**: Important improvements for better scores
+   - 🟢 **Low Priority**: Minor enhancements for optimization
+
+5. Click "🚀 View Optimization Tips" for specific suggestions on:
+   - Formatting best practices
+   - Section improvements
+   - Keywords to add
+   - Content enhancements
+
+**Understanding Your Score:**
+- **A (90-100%)**: Excellent - Your resume is highly ATS-compatible
+- **B (80-89%)**: Good - Minor improvements recommended
+- **C (70-79%)**: Fair - Several improvements needed
+- **D (60-69%)**: Poor - Significant changes required
+- **F (<60%)**: Very Poor - Major restructuring needed
+
+### 7. Download and Review
 
 1. Click "📥 Download Updated Resume" to save your new resume
 2. Open the downloaded resume and review it carefully
 3. Make any final adjustments in your preferred document editor
-4. Your resume is now tailored to match the job description!
+4. Your resume is now tailored to match the job description and ATS-optimized!
 
 ## Best Practices
 
@@ -123,6 +153,34 @@ If you know the concepts but not the specific technologies:
 - Highlight similar technologies you've used
 - Mention quick learning ability
 - Include any side projects or learning initiatives
+
+### ATS Optimization Tips
+
+To maximize your ATS score:
+
+1. **Format Simply**
+   - Use standard fonts (Arial, Calibri, Times New Roman)
+   - Avoid tables, text boxes, headers/footers
+   - Save as .docx or .pdf
+   - Use single-column layout
+
+2. **Structure Clearly**
+   - Include standard sections: Experience, Education, Skills
+   - Put contact info at the top
+   - Use clear section headers in bold
+   - Maintain consistent spacing
+
+3. **Optimize Keywords**
+   - Include job-specific technical skills
+   - Use action verbs (achieved, managed, led, implemented)
+   - Match terminology from job description
+   - Include both acronyms and full terms (e.g., "ML" and "Machine Learning")
+
+4. **Improve Content**
+   - Add quantifiable achievements with numbers
+   - Remove personal pronouns (I, me, my)
+   - Keep bullet points concise
+   - Focus on results and impact
 
 ## Tips and Tricks
 
