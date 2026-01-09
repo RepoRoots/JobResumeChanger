@@ -11,6 +11,9 @@ A powerful web application that automatically tailors your resume to match any j
 - **Interactive UI**: Easy-to-use interface to specify where to add missing points
 - **Resume Generation**: Creates an updated resume with all enhancements in PDF, DOCX, or TXT format
 - **Section Mapping**: Intelligently maps missing points to appropriate resume sections
+- **ATS Compliance Checker**: ✨ NEW! Check how well your resume performs with Applicant Tracking Systems
+- **ATS Score & Grading**: Get detailed scoring on format, structure, keywords, and content quality
+- **Optimization Suggestions**: Receive actionable recommendations to improve your ATS score
 
 ## 🚀 Getting Started
 
@@ -66,11 +69,27 @@ http://localhost:5000
 3. Skip any points you don't want to include
 4. Once done, click "Generate Updated Resume"
 
-### Step 3: Download Your Enhanced Resume
+### Step 3: Check ATS Compliance Score
 
-1. Your updated resume is now ready
+1. Before downloading, click "🔍 Check ATS Score" to see how well your resume performs with Applicant Tracking Systems
+2. View your overall ATS score (0-100%) with a letter grade
+3. See detailed breakdown of:
+   - Format Compatibility
+   - Structure Quality
+   - Keyword Optimization
+   - Content Quality
+4. Review prioritized recommendations to improve your score
+5. Click "🚀 View Optimization Tips" for specific suggestions on:
+   - Formatting best practices
+   - Section improvements
+   - Keyword additions
+   - Content enhancements
+
+### Step 4: Download Your Enhanced Resume
+
+1. Your updated resume is now ready and ATS-optimized
 2. Click "📥 Download Updated Resume" to save it
-3. Use your new, perfectly matched resume for your job application!
+3. Use your new, perfectly matched and ATS-friendly resume for your job application!
 
 ## 🏗️ Project Structure
 
@@ -85,7 +104,8 @@ JobResumeChanger/
 │   ├── job_analyzer.py         # Job description analysis
 │   ├── comparison_engine.py    # Resume vs. job comparison
 │   ├── web_search.py           # Search and suggestion engine
-│   └── resume_generator.py     # Updated resume generation
+│   ├── resume_generator.py     # Updated resume generation
+│   └── ats_checker.py          # ATS compliance scoring and optimization
 ├── services/                   # Service layer (OOP architecture)
 │   ├── __init__.py
 │   ├── resume_service.py       # Resume business logic service
@@ -153,12 +173,75 @@ Provides intelligent suggestions:
 - Suggests action-oriented phrases
 - Provides industry-standard wording
 
+#### ats_checker.py
+Checks ATS compliance and optimization:
+- Calculates comprehensive ATS scores (0-100%)
+- Evaluates format compatibility (no tables, graphics, complex formatting)
+- Assesses structure quality (proper sections, contact info placement)
+- Analyzes keyword optimization (action verbs, technical skills, soft skills)
+- Checks content quality (quantifiable achievements, concise writing)
+- Generates prioritized recommendations for improvement
+- Provides specific optimization suggestions by category
+
 #### resume_generator.py
 Creates updated resume:
 - Maintains original formatting where possible
 - Adds new points to appropriate sections
 - Supports PDF, DOCX, and TXT output
 - Highlights newly added content
+
+## 📊 ATS Compliance Feature
+
+The ATS (Applicant Tracking System) compliance feature helps ensure your resume passes through automated screening systems used by most companies.
+
+### What is ATS?
+
+Applicant Tracking Systems are software applications that help companies manage their recruitment process. They scan and parse resumes before human recruiters see them. Many qualified candidates are filtered out because their resumes aren't ATS-friendly.
+
+### ATS Scoring Components
+
+The ATS checker evaluates four key areas:
+
+1. **Format Compatibility (30% weight)**
+   - Checks for simple, parseable formatting
+   - Detects problematic elements (tables, graphics, headers/footers)
+   - Validates proper use of bullet points
+   - Ensures adequate text density and line breaks
+
+2. **Structure Quality (30% weight)**
+   - Verifies presence of essential sections (Experience, Education, Skills)
+   - Checks for contact information placement
+   - Evaluates section organization
+   - Assesses overall resume structure
+
+3. **Keyword Optimization (25% weight)**
+   - Analyzes action verb usage
+   - Counts technical keywords
+   - Evaluates soft skills inclusion
+   - Matches keywords against job requirements
+   - Checks appropriate keyword density
+
+4. **Content Quality (15% weight)**
+   - Looks for quantifiable achievements
+   - Checks for outdated phrases
+   - Evaluates sentence length and conciseness
+   - Validates professional writing style
+
+### Score Grading
+
+- **A (90-100%)**: Excellent ATS compatibility
+- **B (80-89%)**: Good compatibility with minor improvements needed
+- **C (70-79%)**: Fair compatibility, several improvements recommended
+- **D (60-69%)**: Poor compatibility, significant changes needed
+- **F (<60%)**: Very poor compatibility, major restructuring required
+
+### Optimization Suggestions
+
+The system provides categorized recommendations:
+- **Formatting**: Font choices, file formats, layout tips
+- **Sections**: Missing or weak sections to add
+- **Keywords**: Specific keywords and phrases to include
+- **Content**: Writing improvements and best practices
 
 ## 🎨 Customization
 

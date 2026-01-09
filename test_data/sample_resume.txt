@@ -1,0 +1,27 @@
+John Doe
+john.doe@email.com | 555-123-4567 | LinkedIn: linkedin.com/in/johndoe
+
+PROFESSIONAL SUMMARY
+Software engineer with 5 years of experience in developing web applications.
+
+WORK EXPERIENCE
+
+Senior Software Developer
+Tech Company Inc. | Jan 2020 - Present
+• Developed web applications using Python and JavaScript
+• Worked with team members on various projects
+• Participated in code reviews
+
+Software Developer
+StartupXYZ | Jun 2018 - Dec 2019
+• Built features for the main product
+• Fixed bugs and improved performance
+• Attended daily standup meetings
+
+EDUCATION
+
+Bachelor of Science in Computer Science
+State University | 2018
+
+SKILLS
+Python, JavaScript, SQL, Git, HTML, CSS

@@ -293,6 +293,164 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        
+        /* ATS Score Styles */
+        .ats-score-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .ats-score-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .ats-score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .ats-score-circle.grade-A {
+            color: #28a745;
+            box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+        }
+        
+        .ats-score-circle.grade-B {
+            color: #17a2b8;
+            box-shadow: 0 0 30px rgba(23, 162, 184, 0.5);
+        }
+        
+        .ats-score-circle.grade-C {
+            color: #ffc107;
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.5);
+        }
+        
+        .ats-score-circle.grade-D {
+            color: #fd7e14;
+            box-shadow: 0 0 30px rgba(253, 126, 20, 0.5);
+        }
+        
+        .ats-score-circle.grade-F {
+            color: #dc3545;
+            box-shadow: 0 0 30px rgba(220, 53, 69, 0.5);
+        }
+        
+        .ats-score-grade {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .ats-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .ats-metric {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .ats-metric-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .ats-metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .recommendations-list {
+            margin-top: 20px;
+        }
+        
+        .recommendation-item {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .recommendation-item.priority-high {
+            border-left-color: #dc3545;
+        }
+        
+        .recommendation-item.priority-medium {
+            border-left-color: #ffc107;
+        }
+        
+        .recommendation-item.priority-low {
+            border-left-color: #28a745;
+        }
+        
+        .recommendation-category {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .recommendation-message {
+            margin-bottom: 5px;
+        }
+        
+        .recommendation-issues {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .optimization-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #333;
+        }
+        
+        .optimization-section h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .optimization-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .optimization-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .optimization-section li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -354,7 +512,55 @@
             
             <!-- Step 3: Download -->
             <div id="step3" class="step">
-                <h2>Step 3: Download Your Updated Resume</h2>
+                <h2>Step 3: Check ATS Compliance Score</h2>
+                
+                <div class="info-box">
+                    <strong>📋 ATS Check</strong><br>
+                    Before downloading, check how well your resume performs with Applicant Tracking Systems (ATS).
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn" id="checkATSBtn" onclick="checkATSScore()" style="font-size: 18px; padding: 15px 40px;">
+                        🔍 Check ATS Score
+                    </button>
+                </div>
+                
+                <div id="atsLoading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Analyzing ATS compliance...</p>
+                </div>
+                
+                <div id="atsScoreDisplay" style="display: none;">
+                    <!-- ATS Score will be displayed here -->
+                </div>
+                
+                <div id="downloadSection" style="display: none;">
+                    <div class="success-message">
+                        <strong>✅ Ready to Download!</strong><br>
+                        Your resume has been updated and ATS-checked!
+                    </div>
+                    
+                    <div style="text-align: center; padding: 40px;">
+                        <button class="btn" id="downloadBtn" onclick="downloadResume()" style="font-size: 18px; padding: 15px 40px;">
+                            📥 Download Updated Resume
+                        </button>
+                        
+                        <p style="margin-top: 20px; color: #666;">
+                            Your resume now includes all the key points from the job description.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <button class="btn btn-secondary" onclick="startOver()">
+                            Start Over with New Job
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4: Download (original step 3) -->
+            <div id="step4" class="step" style="display: none;">
+                <h2>Step 4: Download Your Updated Resume</h2>
                 
                 <div class="success-message">
                     <strong>✅ Success!</strong><br>
@@ -362,7 +568,7 @@
                 </div>
                 
                 <div style="text-align: center; padding: 40px;">
-                    <button class="btn" id="downloadBtn" onclick="downloadResume()" style="font-size: 18px; padding: 15px 40px;">
+                    <button class="btn" id="downloadBtn2" onclick="downloadResume()" style="font-size: 18px; padding: 15px 40px;">
                         📥 Download Updated Resume
                     </button>
                     
@@ -647,6 +853,197 @@
         
         function downloadResume() {
             window.location.href = '/download';
+        }
+        
+        async function checkATSScore() {
+            const checkATSBtn = document.getElementById('checkATSBtn');
+            const atsLoading = document.getElementById('atsLoading');
+            const atsScoreDisplay = document.getElementById('atsScoreDisplay');
+            
+            checkATSBtn.disabled = true;
+            atsLoading.style.display = 'block';
+            atsScoreDisplay.style.display = 'none';
+            
+            try {
+                const response = await fetch('/check_ats_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayATSScore(data.ats_score);
+                    atsScoreDisplay.style.display = 'block';
+                    document.getElementById('downloadSection').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error checking ATS score: ' + error.message);
+            } finally {
+                atsLoading.style.display = 'none';
+                checkATSBtn.disabled = false;
+            }
+        }
+        
+        function displayATSScore(atsScore) {
+            const atsScoreDisplay = document.getElementById('atsScoreDisplay');
+            
+            const gradeClass = `grade-${atsScore.grade}`;
+            
+            let html = `
+                <div class="ats-score-container">
+                    <h3 style="text-align: center; margin-bottom: 20px;">ATS Compliance Score</h3>
+                    
+                    <div class="ats-score-display">
+                        <div class="ats-score-circle ${gradeClass}">
+                            ${atsScore.total_score}%
+                            <div class="ats-score-grade">Grade: ${atsScore.grade}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ats-breakdown">
+                        <div class="ats-metric">
+                            <div class="ats-metric-title">Format Compatibility</div>
+                            <div class="ats-metric-value">${atsScore.format.score.toFixed(1)}%</div>
+                        </div>
+                        <div class="ats-metric">
+                            <div class="ats-metric-title">Structure Quality</div>
+                            <div class="ats-metric-value">${atsScore.structure.score.toFixed(1)}%</div>
+                        </div>
+                        <div class="ats-metric">
+                            <div class="ats-metric-title">Keyword Optimization</div>
+                            <div class="ats-metric-value">${atsScore.keywords.score.toFixed(1)}%</div>
+                        </div>
+                        <div class="ats-metric">
+                            <div class="ats-metric-title">Content Quality</div>
+                            <div class="ats-metric-value">${atsScore.content.score.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add recommendations if any
+            if (atsScore.recommendations && atsScore.recommendations.length > 0) {
+                html += `
+                    <div style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 15px;">📋 Recommendations</h3>
+                        <div class="recommendations-list">
+                `;
+                
+                atsScore.recommendations.forEach(rec => {
+                    html += `
+                        <div class="recommendation-item priority-${rec.priority}">
+                            <div class="recommendation-category">
+                                ${rec.priority === 'high' ? '🔴' : rec.priority === 'medium' ? '🟡' : '🟢'} 
+                                ${rec.category}
+                            </div>
+                            <div class="recommendation-message">${rec.message}</div>
+                            ${rec.issues && rec.issues.length > 0 ? `
+                                <div class="recommendation-issues">
+                                    ${rec.issues.map(issue => `• ${issue}`).join('<br>')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn" onclick="showOptimizationSuggestions()" style="background: #28a745;">
+                                🚀 View Optimization Tips
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            atsScoreDisplay.innerHTML = html;
+        }
+        
+        async function showOptimizationSuggestions() {
+            try {
+                const response = await fetch('/optimize_resume', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayOptimizationSuggestions(data.suggestions);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error getting optimization suggestions: ' + error.message);
+            }
+        }
+        
+        function displayOptimizationSuggestions(suggestions) {
+            const atsScoreDisplay = document.getElementById('atsScoreDisplay');
+            
+            let html = `
+                <div class="optimization-section">
+                    <h3 style="text-align: center; margin-bottom: 20px;">🚀 ATS Optimization Suggestions</h3>
+            `;
+            
+            // Formatting suggestions
+            if (suggestions.formatting && suggestions.formatting.length > 0) {
+                html += `
+                    <h4>📝 Formatting</h4>
+                    <ul>
+                        ${suggestions.formatting.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                `;
+            }
+            
+            // Section suggestions
+            if (suggestions.sections && suggestions.sections.length > 0) {
+                html += `
+                    <h4>📑 Sections</h4>
+                    <ul>
+                        ${suggestions.sections.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                `;
+            }
+            
+            // Keyword suggestions
+            if (suggestions.keywords && suggestions.keywords.length > 0) {
+                html += `
+                    <h4>🔑 Keywords</h4>
+                    <ul>
+                        ${suggestions.keywords.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                `;
+            }
+            
+            // Content suggestions
+            if (suggestions.content && suggestions.content.length > 0) {
+                html += `
+                    <h4>✍️ Content</h4>
+                    <ul>
+                        ${suggestions.content.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                `;
+            }
+            
+            html += `
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" id="recheckATSBtn" onclick="checkATSScore()">
+                            🔄 Re-check ATS Score
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            atsScoreDisplay.innerHTML += html;
         }
         
         function startOver() {
