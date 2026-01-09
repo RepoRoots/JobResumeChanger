@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobResumeChanger - Match Your Resume to Any Job</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            border-radius: 5px;
+            background: #f8f9ff;
+            cursor: pointer;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .missing-points {
+            margin-top: 30px;
+        }
+        
+        .point-card {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .point-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .point-card p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .point-card .actions {
+            margin-top: 10px;
+        }
+        
+        .point-card button {
+            margin-right: 10px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .priority-high {
+            border-left-color: #dc3545;
+        }
+        
+        .priority-medium {
+            border-left-color: #ffc107;
+        }
+        
+        .priority-low {
+            border-left-color: #28a745;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .modal-content .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .modal-content select,
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .search-results {
+            margin-top: 20px;
+        }
+        
+        .search-result {
+            background: #f8f9ff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .search-result:hover {
+            background: #e8e9ff;
+        }
+        
+        .search-result h5 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .search-result p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 JobResumeChanger</h1>
+            <p>Transform your resume to match any job description perfectly</p>
+        </div>
+        
+        <div class="content">
+            <!-- Step 1: Upload -->
+            <div id="step1" class="step active">
+                <h2>Step 1: Upload Your Resume and Job Description</h2>
+                <p style="margin: 20px 0; color: #666;">Upload your current resume and paste the job description you're targeting.</p>
+                
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="resume">Upload Your Resume (PDF, DOCX, or TXT)</label>
+                        <input type="file" id="resume" name="resume" accept=".pdf,.docx,.txt" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="jobDescription">Job Description</label>
+                        <textarea id="jobDescription" name="job_description" 
+                                  placeholder="Paste the full job description here..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="analyzeBtn">
+                        Analyze & Find Missing Points
+                    </button>
+                </form>
+                
+                <div id="uploadLoading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Analyzing your resume and job description...</p>
+                </div>
+            </div>
+            
+            <!-- Step 2: Review Missing Points -->
+            <div id="step2" class="step">
+                <h2>Step 2: Review Missing Points</h2>
+                <p style="margin: 20px 0; color: #666;">We found the following points missing from your resume. Click "Search & Add" to find examples and add them.</p>
+                
+                <div class="info-box">
+                    <strong>📊 Analysis Complete!</strong><br>
+                    Found <span id="missingCount">0</span> missing points that could strengthen your resume.
+                </div>
+                
+                <div id="missingPointsList" class="missing-points">
+                    <!-- Missing points will be inserted here -->
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn" id="generateBtn" onclick="generateResume()">
+                        Generate Updated Resume
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Download -->
+            <div id="step3" class="step">
+                <h2>Step 3: Download Your Updated Resume</h2>
+                
+                <div class="success-message">
+                    <strong>✅ Success!</strong><br>
+                    Your resume has been updated to match the job description 100%!
+                </div>
+                
+                <div style="text-align: center; padding: 40px;">
+                    <button class="btn" id="downloadBtn" onclick="downloadResume()" style="font-size: 18px; padding: 15px 40px;">
+                        📥 Download Updated Resume
+                    </button>
+                    
+                    <p style="margin-top: 20px; color: #666;">
+                        Your resume now includes all the key points from the job description.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-secondary" onclick="startOver()">
+                        Start Over with New Job
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for adding points -->
+    <div id="addPointModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Missing Point to Resume</h3>
+            
+            <div id="modalLoading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Searching for examples...</p>
+            </div>
+            
+            <div id="modalContent">
+                <div class="form-group">
+                    <label>Point to Add:</label>
+                    <p id="modalPointText" style="background: #f8f9ff; padding: 10px; border-radius: 5px;"></p>
+                </div>
+                
+                <div class="search-results" id="searchResults" style="display: none;">
+                    <h4>Suggested Examples:</h4>
+                    <div id="searchResultsList">
+                        <!-- Search results will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalSection">Which section should this go in?</label>
+                    <select id="modalSection" required>
+                        <option value="">-- Select Section --</option>
+                        <!-- Sections will be populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalProject">Which project/experience does this relate to? (Optional)</label>
+                    <input type="text" id="modalProject" placeholder="e.g., E-commerce Platform Project">
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalAdditional">Additional details or metrics (Optional)</label>
+                    <textarea id="modalAdditional" rows="3" 
+                              placeholder="e.g., Improved performance by 30%, handled 10,000+ daily users"></textarea>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="savePoint()">Add to Resume</button>
+                    <button class="btn btn-secondary" onclick="closeModal()" style="margin-left: 10px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPoint = null;
+        let allMissingPoints = [];
+        let resumeSections = [];
+        
+        // Handle form submission
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const uploadLoading = document.getElementById('uploadLoading');
+            
+            analyzeBtn.disabled = true;
+            uploadLoading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    allMissingPoints = data.missing_points;
+                    resumeSections = data.resume_sections;
+                    displayMissingPoints(data.missing_points);
+                    showStep(2);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error uploading: ' + error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                uploadLoading.style.display = 'none';
+            }
+        });
+        
+        function displayMissingPoints(points) {
+            const container = document.getElementById('missingPointsList');
+            document.getElementById('missingCount').textContent = points.length;
+            
+            container.innerHTML = '';
+            
+            points.forEach((point, index) => {
+                const card = document.createElement('div');
+                card.className = `point-card priority-${point.priority}`;
+                card.innerHTML = `
+                    <h4>${point.type.replace('_', ' ').toUpperCase()}</h4>
+                    <p>${point.description}</p>
+                    <div class="actions">
+                        <button class="btn" onclick="searchAndAdd(${index})">🔍 Search & Add</button>
+                        <button class="btn btn-secondary" onclick="skipPoint(${index})">Skip</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        async function searchAndAdd(index) {
+            currentPoint = allMissingPoints[index];
+            
+            // Populate modal
+            document.getElementById('modalPointText').textContent = currentPoint.description;
+            
+            // Populate sections dropdown
+            const sectionSelect = document.getElementById('modalSection');
+            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            resumeSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section.name;
+                option.textContent = section.name;
+                sectionSelect.appendChild(option);
+            });
+            
+            // Show modal
+            document.getElementById('addPointModal').classList.add('active');
+            
+            // Search for examples
+            document.getElementById('modalLoading').style.display = 'block';
+            document.getElementById('modalContent').style.display = 'none';
+            
+            try {
+                const response = await fetch('/search_point', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        point: currentPoint.content
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySearchResults(data.results);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            } finally {
+                document.getElementById('modalLoading').style.display = 'none';
+                document.getElementById('modalContent').style.display = 'block';
+            }
+        }
+        
+        function displaySearchResults(results) {
+            const resultsContainer = document.getElementById('searchResults');
+            const resultsList = document.getElementById('searchResultsList');
+            
+            resultsContainer.style.display = 'block';
+            resultsList.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.onclick = () => selectSearchResult(result.content);
+                resultDiv.innerHTML = `
+                    <h5>${result.title}</h5>
+                    <p>${result.content}</p>
+                `;
+                resultsList.appendChild(resultDiv);
+            });
+        }
+        
+        function selectSearchResult(content) {
+            document.getElementById('modalAdditional').value = content;
+        }
+        
+        async function savePoint() {
+            const section = document.getElementById('modalSection').value;
+            const project = document.getElementById('modalProject').value;
+            const additional = document.getElementById('modalAdditional').value;
+            
+            if (!section) {
+                alert('Please select a section');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/add_point', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        point: currentPoint.content,
+                        section: section,
+                        project: project,
+                        additional_info: additional
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove the point from the list
+                    const pointIndex = allMissingPoints.indexOf(currentPoint);
+                    if (pointIndex > -1) {
+                        allMissingPoints.splice(pointIndex, 1);
+                        displayMissingPoints(allMissingPoints);
+                    }
+                    
+                    closeModal();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error saving point: ' + error.message);
+            }
+        }
+        
+        function skipPoint(index) {
+            allMissingPoints.splice(index, 1);
+            displayMissingPoints(allMissingPoints);
+        }
+        
+        function closeModal() {
+            document.getElementById('addPointModal').classList.remove('active');
+            // Clear form
+            document.getElementById('modalSection').value = '';
+            document.getElementById('modalProject').value = '';
+            document.getElementById('modalAdditional').value = '';
+        }
+        
+        async function generateResume() {
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            
+            try {
+                const response = await fetch('/generate_resume', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStep(3);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error generating resume: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Updated Resume';
+            }
+        }
+        
+        function downloadResume() {
+            window.location.href = '/download';
+        }
+        
+        function startOver() {
+            location.reload();
+        }
+        
+        function showStep(stepNumber) {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('step' + stepNumber).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addPointModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
