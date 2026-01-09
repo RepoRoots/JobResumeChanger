@@ -11,6 +11,24 @@ from collections import Counter
 class ATSChecker:
     """Check resume for ATS (Applicant Tracking System) compliance"""
     
+    # Thresholds and constants
+    SPECIAL_CHAR_THRESHOLD = 0.05  # 5% special character ratio threshold
+    MIN_BULLET_POINTS = 3
+    MIN_LINE_BREAKS = 10
+    MIN_ACTION_VERBS = 5
+    MIN_SOFT_SKILLS = 2
+    MIN_WORD_COUNT = 200
+    MAX_WORD_COUNT = 1000
+    MIN_METRICS_COUNT = 3
+    MAX_PRONOUN_COUNT = 5
+    MAX_AVG_SENTENCE_LENGTH = 25
+    
+    # Regex patterns as constants
+    EMAIL_PATTERN = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    PHONE_PATTERN = r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+    METRICS_PATTERN = r'\d+%|\$\d+|\d+ (years|months|people|projects|million|thousand)'
+    PRONOUN_PATTERN = r'\b(I|me|my)\b'
+    
     def __init__(self):
         """Initialize ATS checker with scoring criteria"""
         # Common ATS-friendly section headers
@@ -108,20 +126,20 @@ class ATSChecker:
         
         # Check for unusual characters that might indicate graphics/tables
         special_char_ratio = len(re.findall(r'[^\w\s\-.,;:()@]', text)) / max(len(text), 1)
-        if special_char_ratio > 0.05:
+        if special_char_ratio > self.SPECIAL_CHAR_THRESHOLD:
             issues.append("Contains many special characters - may have complex formatting")
             score -= 15
         
         # Check text density (should have good spacing)
         lines = text.split('\n')
         non_empty_lines = [line for line in lines if line.strip()]
-        if len(non_empty_lines) < 10:
+        if len(non_empty_lines) < self.MIN_LINE_BREAKS:
             issues.append("Very few line breaks - may have formatting issues")
             score -= 10
         
         # Check for bullet points (good for ATS)
         bullet_patterns = len(re.findall(r'[•\-\*]', text))
-        if bullet_patterns < 3:
+        if bullet_patterns < self.MIN_BULLET_POINTS:
             issues.append("Few or no bullet points detected - use bullets for clarity")
             score -= 10
         
@@ -190,8 +208,8 @@ class ATSChecker:
         
         # Check for contact information at the top
         first_200_chars = text[:200].lower()
-        has_email = bool(re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', first_200_chars))
-        has_phone = bool(re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', first_200_chars))
+        has_email = bool(re.search(self.EMAIL_PATTERN, first_200_chars))
+        has_phone = bool(re.search(self.PHONE_PATTERN, first_200_chars))
         
         if not has_email:
             issues.append("Email not found in header - add contact information at top")
@@ -229,7 +247,7 @@ class ATSChecker:
             if verb in text_lower
         )
         
-        if action_verb_count < 5:
+        if action_verb_count < self.MIN_ACTION_VERBS:
             issues.append("Use more action verbs (achieved, managed, led, etc.)")
             score -= 20
         
@@ -245,16 +263,16 @@ class ATSChecker:
             if skill in text_lower
         )
         
-        if soft_skill_count < 2:
+        if soft_skill_count < self.MIN_SOFT_SKILLS:
             issues.append("Include more soft skills (leadership, communication, etc.)")
             score -= 15
         
         # Check keyword density (should be balanced)
         word_count = len(text.split())
-        if word_count < 200:
+        if word_count < self.MIN_WORD_COUNT:
             issues.append("Resume is too short - aim for 400-800 words")
             score -= 25
-        elif word_count > 1000:
+        elif word_count > self.MAX_WORD_COUNT:
             issues.append("Resume may be too long - consider condensing to 1-2 pages")
             score -= 10
         
@@ -311,9 +329,9 @@ class ATSChecker:
         score = 100.0
         
         # Check for quantifiable achievements (numbers/metrics)
-        numbers_count = len(re.findall(r'\d+%|\$\d+|\d+ (years|months|people|projects|million|thousand)', text.lower()))
+        numbers_count = len(re.findall(self.METRICS_PATTERN, text.lower()))
         
-        if numbers_count < 3:
+        if numbers_count < self.MIN_METRICS_COUNT:
             issues.append("Add more quantifiable achievements (numbers, percentages, metrics)")
             score -= 20
         
@@ -327,8 +345,8 @@ class ATSChecker:
             score -= 5
         
         # Check for personal pronouns (should avoid "I", "me", "my")
-        pronoun_count = len(re.findall(r'\b(I|me|my)\b', text, re.IGNORECASE))
-        if pronoun_count > 5:
+        pronoun_count = len(re.findall(self.PRONOUN_PATTERN, text, re.IGNORECASE))
+        if pronoun_count > self.MAX_PRONOUN_COUNT:
             issues.append("Avoid personal pronouns (I, me, my) - use action verbs instead")
             score -= 10
         
@@ -336,7 +354,7 @@ class ATSChecker:
         sentences = re.split(r'[.!?]+', text)
         if sentences:
             avg_sentence_length = sum(len(s.split()) for s in sentences) / len(sentences)
-            if avg_sentence_length > 25:
+            if avg_sentence_length > self.MAX_AVG_SENTENCE_LENGTH:
                 issues.append("Sentences are too long - keep them concise and clear")
                 score -= 10
         
