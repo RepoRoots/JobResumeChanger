@@ -219,6 +219,60 @@ class ResumeController:
             return self.session_service.get_status(), 200
         except Exception as e:
             return {'error': str(e)}, 500
+    
+    def check_ats_score(self) -> Tuple[dict, int]:
+        """
+        Check ATS compliance score for uploaded resume
+        
+        Returns:
+            Tuple of (ATS score dict, status code)
+        """
+        try:
+            # Get data from session
+            resume_data = self.session_service.get_resume_data()
+            job_requirements = self.session_service.get_job_requirements()
+            
+            if not resume_data:
+                return {'error': 'No resume data available'}, 400
+            
+            # Calculate ATS score
+            ats_score = self.resume_service.check_ats_score(resume_data, job_requirements)
+            
+            return {
+                'success': True,
+                'ats_score': ats_score
+            }, 200
+            
+        except Exception as e:
+            return {'error': f'Error checking ATS score: {str(e)}'}, 500
+    
+    def optimize_resume(self) -> Tuple[dict, int]:
+        """
+        Get optimization suggestions for ATS compliance
+        
+        Returns:
+            Tuple of (optimization suggestions dict, status code)
+        """
+        try:
+            # Get data from session
+            resume_data = self.session_service.get_resume_data()
+            job_requirements = self.session_service.get_job_requirements()
+            
+            if not resume_data:
+                return {'error': 'No resume data available'}, 400
+            
+            # Get optimization suggestions
+            suggestions = self.resume_service.get_optimization_suggestions(
+                resume_data, job_requirements
+            )
+            
+            return {
+                'success': True,
+                'suggestions': suggestions
+            }, 200
+            
+        except Exception as e:
+            return {'error': f'Error getting optimization suggestions: {str(e)}'}, 500
 
 
 class JobResumeChangerApp:
@@ -310,6 +364,20 @@ class JobResumeChangerApp:
             controller = ResumeController(self.resume_service, self._get_session_service())
             response, status_code = controller.get_status()
             return jsonify(response), status_code
+        
+        @self.app.route('/check_ats_score', methods=['POST'])
+        def check_ats_score():
+            """Check ATS compliance score"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.check_ats_score()
+            return jsonify(response), status
+        
+        @self.app.route('/optimize_resume', methods=['POST'])
+        def optimize_resume():
+            """Get optimization suggestions for ATS compliance"""
+            controller = ResumeController(self.resume_service, self._get_session_service())
+            response, status = controller.optimize_resume()
+            return jsonify(response), status
     
     def run(self, host: str = '0.0.0.0', port: int = 5000) -> None:
         """

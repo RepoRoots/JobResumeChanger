@@ -14,6 +14,7 @@ from modules.job_analyzer import JobAnalyzer
 from modules.comparison_engine import ComparisonEngine
 from modules.web_search import WebSearchEngine
 from modules.resume_generator import ResumeGenerator
+from modules.ats_checker import ATSChecker
 
 
 class ResumeService:
@@ -38,6 +39,7 @@ class ResumeService:
         self.comparison_engine = ComparisonEngine()
         self.web_search_engine = WebSearchEngine()
         self.resume_generator = ResumeGenerator()
+        self.ats_checker = ATSChecker()
         
         # Ensure directories exist
         os.makedirs(self.upload_folder, exist_ok=True)
@@ -174,3 +176,32 @@ class ResumeService:
             True if file exists, False otherwise
         """
         return filepath and os.path.exists(filepath)
+    
+    def check_ats_score(self, resume_data: Dict, job_requirements: Dict = None) -> Dict:
+        """
+        Check ATS compliance score for a resume
+        
+        Args:
+            resume_data: Parsed resume data
+            job_requirements: Optional job requirements for keyword matching
+            
+        Returns:
+            Dictionary containing ATS score and recommendations
+        """
+        return self.ats_checker.calculate_ats_score(resume_data, job_requirements)
+    
+    def get_optimization_suggestions(self, resume_data: Dict, 
+                                    job_requirements: Dict = None) -> Dict:
+        """
+        Get optimization suggestions for improving ATS score
+        
+        Args:
+            resume_data: Parsed resume data
+            job_requirements: Optional job requirements
+            
+        Returns:
+            Dictionary with categorized optimization suggestions
+        """
+        return self.ats_checker.generate_optimization_suggestions(
+            resume_data, job_requirements
+        )
